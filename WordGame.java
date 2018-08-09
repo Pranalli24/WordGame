@@ -1,3 +1,6 @@
+import sun.misc.InnocuousThread;
+
+import java.io.File;
 import java.util.*;
 
 public class WordGame {
@@ -11,9 +14,11 @@ public class WordGame {
     String ourString;
     String usersString;
     Map<String, List<String>> possibleWords;
+    Map <Integer, String> allValidOnes;
     List<String> possibleSubString;
 
     WordGame(int numOfLetter, String usersString){
+        index = 1;
         this.numOfLetter = numOfLetter;
         this.usersString = usersString;
         this.possibleSubString = new ArrayList<String>();
@@ -25,38 +30,76 @@ public class WordGame {
 //        possibleWords.put("")
     }
 
-    public boolean isSubSequence(String str1, String str2, int m, int n)
+    public boolean isSubSequence(String str1, String str2)
     {
-        if (m == 0) return true;
-        if (n == 0) return false;
-
-        if (str1.charAt(m-1) == str2.charAt(n-1))
-            return isSubSequence(str1, str2, m-1, n-1);
-
-        return isSubSequence(str1, str2, m, n-1);
+        for(int i=0;i<str2.length();i++){
+            if (!str1.contains(String.valueOf(str2.charAt(i)))){
+                return false;
+            }
+        }
+        return true;
     }
 
+    public boolean isUnique(String s){
+        for(int i=0;i<s.length()-1;i++)
+        {
+            char t=s.charAt(i);
+            for(int j=i+1;j<s.length();j++)
+            {
+                if(t == s.charAt(j))
+                    return  false;
+            }
+        }
+        return true;
+    }
+
+    public void allValidWords()
+    { 	allValidOnes= new HashMap<Integer, String>();
+        String file = "/Users/sanranganathan/Downloads/words.txt";
+        try {
+            Scanner sc = new Scanner(new File(file));
+            while (sc.hasNext()) {
+                String s = sc.next();
+                if (isUnique(s)) {
+                    allValidOnes.put(s.length(), s);
+
+                }
+            }
+        } catch (Exception e){
+            System.out.println("Something is wrong");
+        }
+    }
 
     public String nextGuess(){
 
         String guessString = "";
         if (possibleSubString.isEmpty()){
-            index = 1;
             int i = 0;
-            for (Map.Entry<String, List<String>> t : possibleWords.entrySet()>){
+            for (Map.Entry<String, List<String>> t : possibleWords.entrySet()){
                 if (i++ == index){
                     guessString = t.getValue().get(0);
                 }
             }
+            index++;
             //int common = commonLetters(guessString, usersString);
         } else {
-            String guessSeq =  possibleSubString.get(0);
-            for (Map.Entry<String, List<String>> t : possibleWords.entrySet()){
-                if(isSubSequence(t.getKey(), guessSeq, t.getKey().length(), guessSeq.length())){
-                    for (String s : t.getValue()){
-                        guessString = s;
+           List<String> removeString = new ArrayList<>();
+            for (String s : possibleSubString) {
+                String guessSeq = s;
+                for (Map.Entry<String, List<String>> t : possibleWords.entrySet()) {
+                    if (isSubSequence(t.getKey(), guessSeq)) {
+                        for (String validWords : t.getValue()) {
+                            guessString = validWords;
+                        }
                     }
                 }
+                removeString.add(s);
+                if (!guessString.equals("")){
+                    return guessString;
+                }
+            }
+            for (String s: removeString){
+                possibleSubString.remove(s);
             }
         }
         return guessString;
@@ -64,7 +107,7 @@ public class WordGame {
     }
 
     public void updateGuessParam (String lastGuess,int common){
-        if (common>commonLetters){
+        if (common>=commonLetters){
             possibleSubString = new ArrayList<String>();
             SubSeq.subsequence(lastGuess);
             HashSet<String> allSeq = SubSeq.st;
@@ -93,6 +136,20 @@ public class WordGame {
 
     public static void main(String[] args){
         //loop till win here
+        WordGame w = new WordGame(4, "WORD");
+        w.allValidWords();
+        WordGuess wg = new WordGuess(4,"dog");
+        wg.generateMap(4);
+//        System.out.print(wg.possibleWords);
+        w.possibleWords = wg.possibleWords;
+        String word = "word";
+        String guess = w.nextGuess();
+        do {
+            int common = w.commonLetters(guess, word);
+            guess = w.nextGuess();
+            w.updateGuessParam(guess, common);
+            System.out.println(guess);
+        }while(!guess.equals(word));
     }
 
 }
