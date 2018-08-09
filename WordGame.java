@@ -7,13 +7,16 @@ public class WordGame {
 
 
     int numOfLetter;
+    int difficulty;
+    String ourString;
+    String usersString;
     Map<String, List<String>> possibleWords;
     List<String> possibleSubString;
-    int difficulty;
 
-    WordGame(int numOfLetter){
+    WordGame(int numOfLetter, String usersString){
         this.numOfLetter = numOfLetter;
-        possibleSubString = new ArrayList<>();
+        this.usersString = usersString;
+        this.possibleSubString = new ArrayList<>();
     }
 
     public void generateMap(){
@@ -23,7 +26,9 @@ public class WordGame {
     }
 
     public String nextGuess(){
-
+        if (possibleSubString.isEmpty()){
+            int lettersCommon = commonLetters(possibleWords.get)
+        }
     }
 
     public int commonLetters(String guess, String actual){
